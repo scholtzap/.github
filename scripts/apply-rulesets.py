@@ -161,10 +161,17 @@ def pr_job_names(text: str) -> tuple[list[str], list[str]]:
     return required, notes
 
 
+SKIP_WORKFLOW = ("deploy", "release", "changelog", "claude", "docker", "sync-commit")
+
+
 def discover(repo: str, ref: str) -> tuple[list[str], list[str]]:
     checks: list[str] = []
     notes: list[str] = []
     for name in list_workflows(repo, ref):
+        lower = name.lower()
+        if any(token in lower for token in SKIP_WORKFLOW):
+            notes.append(f"skip workflow {name}")
+            continue
         text = file_text(repo, f".github/workflows/{name}", ref)
         if text is None:
             continue
@@ -173,7 +180,7 @@ def discover(repo: str, ref: str) -> tuple[list[str], list[str]]:
         notes.extend(f"{name}: {note}" for note in job_notes)
     deduped: list[str] = []
     for check in checks:
-        if check not in deduped and check != "pr-gate":
+        if check not in deduped and check not in {"pr-gate", "pr-gate / pr-gate"}:
             deduped.append(check)
     return deduped, notes
 
@@ -286,7 +293,7 @@ def apply_one(repo: dict, owner: str, context: str, dry_run: bool) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pr-gate-context", default="pr-gate")
+    parser.add_argument("--pr-gate-context", default="pr-gate / pr-gate")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     rows = []
