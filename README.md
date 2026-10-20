@@ -26,8 +26,10 @@ jobs:
 
 ## Rulesets
 
+The check name on a pull request is `pr-gate / pr-gate` (caller job / called job). Pass that to the ruleset script:
+
 ```bash
-bash scripts/apply-rulesets.sh --pr-gate-context "pr-gate"
+bash scripts/apply-rulesets.sh --pr-gate-context "pr-gate / pr-gate"
 ```
 
 The script skips archived repositories and repositories with no pull_request CI job. Private repositories on the GitHub Free plan cannot use rulesets; the script records that and continues. Re-run it after GitHub Pro (user) and Team (3BO-Track) are enabled.
